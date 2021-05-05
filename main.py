@@ -1,10 +1,7 @@
 import sys
 import os
 
-
-
-
-def print_usage(list_of_arguments):
+def print_usage():
     if len(sys.argv) ==1:
         print("$ todo" "\n"
           "\n"
@@ -23,80 +20,87 @@ def print_usage(list_of_arguments):
 def read_todos(file_path):
     file=open(file_path, 'r')
     index=1
-    for i in file:
-        content=file.read()
-        print(str(index) + "-" + content + "\n")
-        index +=1
-    return content
-    file.close()
+    content = file.readlines() # readlines reads content line by line but read reads the entire content of the file.
+    if len(content)<1:
+        print("No todos for today! :)")
+    else:
+        for i in range(len(content)):
+            print(str(index) + "-" + content[i] + "\n")
+            index +=1
+        file.close()
+        return content
 
-
-def no_todos(file_path):
-    file=open(file_path, 'r')
-    file.close()
-    return ("No todos for today! :)")
 
 def append_todo(file_path):
     file=open(file_path, 'a')
-    file.write('\n''Feed the monkey')
-    file.close()
-    return ("Feed the monkey")
+    if len(sys.argv)<2:
+        print("Unable to add: no task provided")
+    else:
+        file.write("\n" + sys.argv[2])
+        file.close()
 
-def no_todo_provided(file_path):
-    file=open(file_path, 'a')
-    file.write()
-    file.close()
-    return ("Unable to add: no task provided")
 
 def remove_todo(file_path):
-    file=open(file_path, 'r')
-    if len(sys.argv) < 3:
+    if len(sys.argv) == 2:
         print("Unable to remove: no index provided")
-    elif len(sys.argv) == 3:
+    elif len(sys.argv) > 2:
         if sys.argv[2].isnumeric():
-            index = int(sys.argv[2]) - 1
-            del [index]
-        else:
-            return "Unable to remove: index out of bound"
+            file = open(file_path, 'r')# reading and closing
+            content = file.readlines()
+            file.close()
+            index = int(sys.argv[2])-1
+            content.remove(content[index])
+            file=open(file_path, 'w')
+            file.write("".join(content))# we are overwriting existing file
+            file.close()
+        elif sys.argv[2] == str(sys.argv[2]):# if second argument given is a string
+            print("Unable to remove: index is not a number")
 
-def check_todo(file_path):
-    file=open(file_path, 'r+')
+def unsupported_argument(): # is this correct?
+    any_other_phrase =["-l", "-a", "-r", "-c"]
+    if len(sys.argv)<=2 and not any_other_phrase.__contains__(sys.argv[1]):
+        print("Unsupported argument")
+        print_usage()
+
+
+def check_todo(file_path): #follow the logic of remove_todo() but instead of remove use append
+    # file=open(file_path, 'r+')#read and write / edit
     if len(sys.argv) < 3:
-        print("Unable to check: no index provided")
+        print("Unable to check: no index provided")# running
     elif len(sys.argv) == 3:
         if sys.argv[2].isnumeric():
-            index = str(int(sys.argv[2]) - 1)
-            for i in file:
-                content=file.read()
-            check=index +'[x]'+content
-            return check
-        else:
-            return "Unable to check: index out of bound"
-    else:
-        return "Unable to check: index is not a number"
+            file = open(file_path, 'r')  # reading and closing
+            content = file.readlines()
+            file.close()
+            index = int(sys.argv[2]) - 1
+            content[index]= "[x]" + "".join(content[index])
+            file = open(file_path, 'w')
+            for line in content:
+                file.write(line)  # we are overwriting existing file
+            file.close()
+        elif sys.argv[2].isnumeric():
+            index = int(sys.argv[2]) - 1
+            if sys.argv[2]< index:
+                print("Unable to check: index out of bound")# if index out of range is given, the index number is raised but this imessage is not displayed.
+        elif sys.argv[2] == str(sys.argv[2]):
+            print("Unable to check: index is not a number")
 
 
 def main(todo_application):
     if len(sys.argv)==1:
-         print(print_usage('list_of_arguments'))
-    # elif len(sys.argv) > 2:
-    #     print("How can I help you?")
-    elif len(sys.argv) > 2:            #when you start giving values after the first argument
+         print_usage()
+    elif len(sys.argv) >= 2:            #when you start giving values after the first argument
         if sys.argv[1] == '-l':
-            print(read_todos('list_todo.txt'))
-        elif sys.argv[1] == '-l' and len(sys.argv)<3:
-            print(no_todos('list_todo.txt'))
-        elif sys.argv[1] == '-a':
-           print(append_todo('list_todo.txt'))
-        if sys.argv[1] == '-a' and len(sys.argv)<3:
-                 print(no_todo_provided('list_todo.txt'))
+            read_todos('list_todo.txt')
+        elif sys.argv[1] == '-a' and len(sys.argv)>= 3:
+            append_todo('list_todo.txt')
         elif sys.argv[1] == '-r':
-            print(remove_todo('list_todo.txt'))
+            remove_todo('list_todo.txt')
         elif sys.argv[1] == '-c':
-            print(check_todo('list_todo.txt'))
-    elif len(sys.argv)==1:
-            print(print_usage('list_of_arguments'))
-#         return main(todo_application)
-print(main('todo_application'))
+            check_todo('list_todo.txt')
+        else:
+            unsupported_argument()
+
+main('todo_application')
 
 
